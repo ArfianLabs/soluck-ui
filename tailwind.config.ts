@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import daisyui from "daisyui";
 
 const config = {
   darkMode: ["class"],
@@ -19,6 +20,11 @@ const config = {
     },
     extend: {
       colors: {
+        "bonk-yellow": "#FCE184",
+        "bonk-orange": "#FFB877",
+        "bonk-red": "#FF7F7F",
+        "bonk-white": "#FEF8E2",
+        "bonk-black": "#0F0E0C",
         whiteish: "#f2f2f2",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -75,7 +81,7 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [daisyui],
 } satisfies Config;
 
 export default config;

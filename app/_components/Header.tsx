@@ -1,10 +1,11 @@
-import { FaWallet } from "react-icons/fa6";
-import { Button } from "@/components/ui/button";
+"use client";
 import Image from "next/image";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 export const Header = () => {
   return (
-    <div className="h-24 bg-gray-900 w-full flex justify-between items-center">
+    <div className="h-24 bg-bonk-black w-full flex justify-between items-center">
       <Image
         src="/logo.png"
         alt="logo"
@@ -12,10 +13,9 @@ export const Header = () => {
         height={64}
         className="ml-6"
       />
-      <Button className="mr-6 w-32 h-10 bg-white text-gray-900 flex gap-2">
-        <text>Connect</text>
-        <FaWallet />
-      </Button>
+      <div className="mr-10">
+        <WalletMultiButton></WalletMultiButton>
+      </div>
     </div>
   );
 };

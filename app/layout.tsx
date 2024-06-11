@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "./_components/Header";
 import { HomeLayout } from "./home.layout";
+import { SolanaProvider } from "./_provider/solana.provider";
+import { SocketProvider } from "./_api/socket";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <HomeLayout> {children}</HomeLayout>
+        <SolanaProvider>
+          <SocketProvider>
+            <HomeLayout> {children}</HomeLayout>
+          </SocketProvider>
+        </SolanaProvider>
       </body>
     </html>
   );

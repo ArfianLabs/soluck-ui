@@ -12,7 +12,7 @@ export const startSignalRConnection = ({
   addPlayer: any;
   setWinner: any;
 }) => {
-  const url = "http://socket.soluck.io/rouletteHub";
+  const url = "https://socket.soluck.io/rouletteHub";
   connection = new signalR.HubConnectionBuilder()
     .withUrl(url)
     .withAutomaticReconnect()

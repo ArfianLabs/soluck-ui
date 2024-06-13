@@ -10,7 +10,7 @@ export const NFTCard = ({
   hasNum = true,
 }: {
   nft: INFT;
-  handleOnClick: any;
+  handleOnClick?: any;
   hasNum?: boolean;
 }) => {
   const [image, setImage] = useState<string>("");

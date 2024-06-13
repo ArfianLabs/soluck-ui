@@ -16,6 +16,7 @@ export default function Home() {
   const gameHistory = useHistory((state) => state.history);
   const players = useRoulette((state) => state.players);
 
+
   const [isRunning, setIsRunning] = useState(false); // Control timer state
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export default function Home() {
           <JackpotWheel></JackpotWheel>
           <div className="flex flex-col mt-16">
             {players.map((player, index) => (
-              <div className=" flex items-center">
+              <div key={index} className=" flex items-center">
                 <div className={"w-4 h-4 mr-2 " + player.color}></div>
                 <div>
                   {" "}
@@ -98,8 +99,8 @@ export default function Home() {
         <div className="flex gap-2 mt-16">
           {players.length > 0 &&
             players.map((player, index) => (
-              <div className=" flex items-center justify-center pt-2">
-                <NFTCard
+              <div key={index} className=" flex items-center justify-center pt-2">
+                <NFTCard 
                   nft={{
                     mint: player.mint,
                     price: player.floorPrice,
@@ -107,7 +108,6 @@ export default function Home() {
                     color: player.color,
                   }}
                   hasNum={false}
-                  color="yellow"
                 ></NFTCard>
               </div>
             ))}
@@ -137,7 +137,7 @@ export default function Home() {
 
         <div className="absolute mt-8 ml-12 text-bonk-white">
           {gameHistory.length > 0 &&
-            gameHistory.map((history, index) => <div>{history}</div>)}
+            gameHistory.map((history, index) => <div key={index}>{history}</div>)}
         </div>
       </div>
     </div>

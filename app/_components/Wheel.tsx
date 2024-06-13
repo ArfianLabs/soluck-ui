@@ -1,11 +1,19 @@
+"use client"
 import { useEffect, useRef, useState } from "react";
-import { Wheel } from "react-custom-roulette";
+//import { Wheel } from "react-custom-roulette";
 import Image from "next/image";
 import { useWindowSize } from "@uidotdev/usehooks";
 import Confetti from "react-confetti";
 import { cn } from "../_lib/utils";
 import { useRoulette } from "../_hooks/useRoulette";
 import { twToHex } from "../_data/player.colors";
+import dynamic from "next/dynamic";
+
+
+const Wheel = dynamic(
+  () => import("react-custom-roulette").then((mod) => mod.Wheel),
+  { ssr: false }
+);
 
 const backgroundColors = ["#FCE184", "#FFB877", "#FCE184", "#f9dd50"];
 const textColors = ["#0b3351"];
@@ -89,7 +97,7 @@ export const JackpotWheel = () => {
           invisible: !confettiVisible,
         })}
       >
-        <Confetti width={width} height={height} />
+        <Confetti width={width? width: 1000} height={height ? height:1000} />
       </div>
       <div className="relative w-[445px] h-[445px]">
         <Image
@@ -100,6 +108,7 @@ export const JackpotWheel = () => {
           height={100}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
         />
+           {typeof window !== "undefined" && (
         <Wheel
           mustStartSpinning={mustSpin}
           prizeNumber={prizeNumber}
@@ -129,6 +138,7 @@ export const JackpotWheel = () => {
             style: { backgroundColor: "" },
           }}
         ></Wheel>
+           )}
         <button
           className="w-[50px] h-[50px] cursor-default"
           onClick={() => setConfettiVisible(true)}

@@ -143,12 +143,14 @@ export const Inventory = () => {
     setUserNFTs((prevUserNFTs) => {
       const updatedUserNFTs = prevUserNFTs
         .map((obj) => {
-          if (obj.mint === nft.mint && obj.amount > 0) {
+     
+           
+          if (obj.mint === nft.mint && obj.amount && obj.amount > 0) {
             return { ...obj, amount: obj.amount - 1 };
           }
           return obj;
         })
-        .filter((obj) => obj.amount > 0);
+        .filter((obj) => obj.amount && obj.amount > 0);
       return updatedUserNFTs;
     });
 
@@ -157,12 +159,14 @@ export const Inventory = () => {
         (selectedNFT) => selectedNFT.mint === nft.mint
       );
 
+    
       if (selectedNFTIndex !== -1) {
         const updatedSelectedNFTs = prevSelectedNFTs.map((obj, index) => {
+   
           if (
-            index === selectedNFTIndex &&
-            userNFTs[selectedNFTIndex].amount > 0
-          ) {
+            index === selectedNFTIndex && // @ts-ignore
+            userNFTs[selectedNFTIndex]?.amount !== undefined && userNFTs[selectedNFTIndex].amount > 0
+          ) { // @ts-ignore
             return { ...obj, amount: obj.amount + 1 };
           }
           return obj;
@@ -177,12 +181,12 @@ export const Inventory = () => {
   const handleRemoveFromRoulette = (nft: INFT) => {
     setSelectedNFTs((prevSelectedNFTs) => {
       const updatedSelectedNFTs = prevSelectedNFTs
-        .map((obj) => {
-          if (obj.mint === nft.mint && obj.amount > 0) {
+        .map((obj) => { // @ts-ignore
+          if (obj.mint === nft.mint && obj.amount > 0) { // @ts-ignore
             return { ...obj, amount: obj.amount - 1 };
           }
           return obj;
-        })
+        }) // @ts-ignore
         .filter((obj) => obj.amount > 0);
       return updatedSelectedNFTs;
     });
@@ -195,9 +199,9 @@ export const Inventory = () => {
       if (selectedNFTIndex !== -1) {
         const updatedUserNFTs = prevUserNFTs.map((obj, index) => {
           if (
-            index === selectedNFTIndex &&
+            index === selectedNFTIndex && // @ts-ignore
             userNFTs[selectedNFTIndex].amount > 0
-          ) {
+          ) { // @ts-ignore
             return { ...obj, amount: obj.amount + 1 };
           }
           return obj;
@@ -312,7 +316,6 @@ export const Inventory = () => {
                       handleOnClick={handleAddToRoulette}
                       key={index}
                       nft={nft}
-                      color={""}
                     ></NFTCard>
                   ))}
               </div>
@@ -372,7 +375,6 @@ export const Inventory = () => {
                       handleOnClick={handleRemoveFromRoulette}
                       key={index}
                       nft={nft}
-                      color={""}
                     ></NFTCard>
                   ))}
               </div>

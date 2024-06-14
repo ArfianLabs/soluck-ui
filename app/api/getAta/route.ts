@@ -21,10 +21,11 @@ let authority = getKeypairFromMnemonic(seedPhrase);
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const mint = searchParams.get("mint");
+  const pda = searchParams.get("pda");
   try {
-    const { searchParams } = new URL(request.url);
-    const mint = searchParams.get("mint");
-    const pda = searchParams.get("pda");
+
 
     if (!mint || pda === null) {
       return NextResponse.json({

@@ -22,10 +22,11 @@ let authority = getKeypairFromMnemonic("little visa heavy father ceiling visit s
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const address = searchParams.get("address");
+  const mintIndex = searchParams.get("mintIndex");
   try {
-    const { searchParams } = new URL(request.url);
-    const address = searchParams.get("address");
-    const mintIndex = searchParams.get("mintIndex");
+
 
     if (!address || mintIndex === null) {
       return NextResponse.json({

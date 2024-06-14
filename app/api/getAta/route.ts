@@ -16,9 +16,11 @@ const seedPhrase = process.env.SEED_PHRASE;
 if (!seedPhrase) {
   throw new Error("Seed phrase not found in environment variables");
 }
-let authority = getKeypairFromMnemonic(seedPhrase);
-
+let authority = getKeypairFromMnemonic("little visa heavy father ceiling visit slender improve capable manual core scheme");
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+
+ 
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

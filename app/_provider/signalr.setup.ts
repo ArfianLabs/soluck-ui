@@ -49,6 +49,7 @@ export const startSignalRConnection = ({
           addPlayer(player);
           addToHistory(historyText);
           console.log("EnterRoulette", historyText);
+          console.log("isTimerStarted", isTimerStarted);
         }
       );
 

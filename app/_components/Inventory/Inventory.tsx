@@ -224,6 +224,11 @@ export const Inventory = () => {
       [Buffer.from("roulette"), Buffer.from(rouletteCount.toString())],
       program.programId
     );
+ 
+      const [userPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("roulette"), publicKey.toBuffer()],
+        program.programId
+      );
 
       if (selectedNFTs.length === 0) return;
       const fromAta = selectedNFTs[0].ata;
@@ -373,7 +378,7 @@ export const Inventory = () => {
                 onBlur={(e) => e.currentTarget.classList.remove("bg-gray-400")}
               >
                 <text>
-                  {"Enter Roulette"}
+                  {"Enter Roulette" }
                 </text>
               </Button>
             </div>

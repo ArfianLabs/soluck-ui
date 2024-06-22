@@ -224,25 +224,7 @@ export const Inventory = () => {
       [Buffer.from("roulette"), Buffer.from(rouletteCount.toString())],
       program.programId
     );
-    if (!isPdaInitialized) {
-      console.log("userPDA", userPDA);
-      const [user1RoullettePDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("roulette"), publicKey.toBuffer()],
-        program.programId
-      );
 
-      const createAccTx = await program.methods
-        .createUserAccount()
-        .accounts({
-          userWinningAccount: user1RoullettePDA,
-          sender: publicKey,
-        })
-        .transaction();
-      const transactionSignature1 = await sendTransaction(
-        createAccTx,
-        connection
-      );
-    } else {
       if (selectedNFTs.length === 0) return;
       const fromAta = selectedNFTs[0].ata;
       const mint = selectedNFTs[0].mint;
@@ -268,7 +250,7 @@ export const Inventory = () => {
         rouletteTx,
         connection
       );
-    }
+    
   };
 
   return (
@@ -391,7 +373,7 @@ export const Inventory = () => {
                 onBlur={(e) => e.currentTarget.classList.remove("bg-gray-400")}
               >
                 <text>
-                  {isPdaInitialized ? "Enter Roulette" : "Create Account"}
+                  {"Enter Roulette"}
                 </text>
               </Button>
             </div>

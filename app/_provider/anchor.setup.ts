@@ -2,7 +2,7 @@ import { Program } from "@coral-xyz/anchor";
 import { IDL, SoluckRouletteProgram } from "./idl";
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 
-const programId = new PublicKey("7Mf7myQj9Bt5tSeWeD8HN8n5nnqPc3foErLcCfDQ8HTo");
+const programId = new PublicKey("Druj43mNFTdUh5hehjGBdNA8BAwAUyvup7LHweLsyt19");
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 // Initialize the program interface with the IDL, program ID, and connection.

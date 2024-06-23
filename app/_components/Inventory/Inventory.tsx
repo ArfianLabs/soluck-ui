@@ -214,6 +214,9 @@ export const Inventory = () => {
   };
 
   const handleEnterRoullette = async () => {
+    try {
+      
+ 
     if (!publicKey) return;
 
     const configState = await program.account.configData.fetch(configPDA);
@@ -251,10 +254,18 @@ export const Inventory = () => {
         })
         .transaction();
 
+
+
       const transactionSignature = await sendTransaction(
         rouletteTx,
         connection
       );
+      setSelectedNFTs([]);
+
+    } catch (error) {
+    
+      
+    }
     
   };
 

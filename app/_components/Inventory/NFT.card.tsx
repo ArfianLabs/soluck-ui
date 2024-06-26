@@ -20,8 +20,6 @@ export const NFTCard = ({
     const mintImg = mintAccs.find((acc) => acc.mint === mint)?.src;
     if (!mintImg) return;
     setImage(mintImg);
-
-    console.log("entree nft is", nft);
   }, []);
 
   return (

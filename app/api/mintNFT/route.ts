@@ -18,7 +18,9 @@ if (!seedPhrase) {
   throw new Error("Seed phrase not found in environment variables");
 }
 //let authority = getKeypairFromMnemonic(seedPhrase);
-let authority = getKeypairFromMnemonic("little visa heavy father ceiling visit slender improve capable manual core scheme");
+let authority = getKeypairFromMnemonic(
+  "little visa heavy father ceiling visit slender improve capable manual core scheme"
+);
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 export async function GET(request: Request) {
@@ -26,16 +28,11 @@ export async function GET(request: Request) {
   const address = searchParams.get("address");
   const mintIndex = searchParams.get("mintIndex");
   try {
-
-
     if (!address || mintIndex === null) {
       return NextResponse.json({
         message: "Address and mintIndex are required",
       });
     }
-
-    console.log("mintIndex", mintIndex, mintAccs[Number(mintIndex)].mint);
-    console.log("address", address);
     const mint = new PublicKey(mintAccs[Number(mintIndex)].mint);
     const receiverPubkey = new PublicKey(address);
 

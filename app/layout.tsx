@@ -4,6 +4,7 @@ import "./globals.css";
 import { HomeLayout } from "./home.layout";
 import { SolanaProvider } from "./_provider/solana.provider";
 import { SocketProvider } from "./_api/socket";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
         <SolanaProvider>
           <SocketProvider>
             <HomeLayout> {children}</HomeLayout>
+            <Toaster position="bottom-right"></Toaster>
           </SocketProvider>
         </SolanaProvider>
       </body>

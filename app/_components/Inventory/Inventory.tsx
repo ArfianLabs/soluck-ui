@@ -7,102 +7,153 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { INFT } from "@/app/_interfaces/nft.interface";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { AccountLayout, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
+import {
+  AccountLayout,
+  TOKEN_PROGRAM_ID,
+  getOrCreateAssociatedTokenAccount,
+} from "@solana/spl-token";
+import { PublicKey, PublicKeyInitData } from "@solana/web3.js";
 import { mintAccs } from "../../_data/mint.accs";
 import { program } from "../../_provider/anchor.setup";
 import { configPDA } from "../../_provider/anchor.setup";
+import { ErrorToast, SuccessToast, PromiseToast } from "../Toast/toast";
+import toast from "react-hot-toast";
 
 export const Inventory = () => {
   const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
 
-  const [userNFTs, setUserNFTs] = useState<INFT[]>([]);
   const [selectedNFTs, setSelectedNFTs] = useState<INFT[]>([]);
+  const [userNFTs, setUserNFTs] = useState<INFT[]>([]);
   const [isPdaInitialized, setIsPdaInitialized] = useState<boolean>(false);
   const [userPDA, setUserPDA] = useState<PublicKey>();
-
-  const { publicKey, sendTransaction } = useWallet();
   const hasFetched = useRef(false);
 
   useEffect(() => {
     if (publicKey && !hasFetched.current) {
       hasFetched.current = true;
-      getTokenAccounts();
-      getPlayerPDA();
+      fetchTokenAccounts();
+      fetchUserWinningsAccount();
     }
   }, [publicKey]);
 
-  const getPlayerPDA = async () => {
+  const fetchUserWinningsAccount = async () => {
     if (!publicKey) return;
-    const [winnerPDA] = PublicKey.findProgramAddressSync(
+
+    const [userPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("roulette"), publicKey.toBuffer()],
       program.programId
     );
+
+    // fetch user pda
+    const userData = await program.account.userRouletteData.fetch(userPDA);
+    console.log("userData", userData);
+    const winnings = userData.winningRouletteIndexes.map((index) =>
+      index.toNumber()
+    );
+    console.log("winnings", winnings);
+
+    for (let w of winnings) {
+      const [winningsPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("roulette"), Buffer.from(w.toString())],
+        program.programId
+      );
+      const tokenAccounts = await connection.getTokenAccountsByOwner(
+        winningsPDA,
+        {
+          programId: TOKEN_PROGRAM_ID,
+        }
+      );
+      const nfts = tokenAccounts.value.map((tokenAccount) => {
+        const accountData = AccountLayout.decode(tokenAccount.account.data);
+        const amount = Number(accountData.amount);
+        if (amount === 0) return null;
+
+        return {
+          amount,
+        };
+      });
+
+      console.log("nfts", nfts);
+    }
+
+    setUserPDA(userPDA);
+  };
+
+  const fetchTokenAccountsByMint = async (mintAcc: any) => {
+    if (!publicKey) return;
     try {
-      const isInitialized =
-        await program.account.userRouletteData.getAccountInfo(winnerPDA);
-      if (isInitialized) {
-        setIsPdaInitialized(true);
-        setUserPDA(winnerPDA);
-      } else {
-        setIsPdaInitialized(false);
-      }
+      const tokenAccounts = await connection.getTokenAccountsByOwner(
+        publicKey,
+        {
+          mint: new PublicKey(mintAcc.mint),
+          programId: TOKEN_PROGRAM_ID,
+        }
+      );
+
+      const nfts = tokenAccounts.value
+        .map((tokenAccount) => {
+          const accountData = AccountLayout.decode(tokenAccount.account.data);
+          const amount = Number(accountData.amount);
+          if (amount === 0) return null;
+
+          return {
+            amount,
+            ata: tokenAccount.pubkey.toBase58(),
+            mint: accountData.mint.toBase58(),
+            owner: accountData.owner.toBase58(),
+            src: mintAcc.src,
+            price: mintAcc.price,
+          };
+        })
+        .filter((nft) => nft !== null);
+
+      return nfts;
     } catch (error) {
-      // Handle errors
-      console.error("Error:", error);
+      console.error("Error fetching token accounts:", error);
+      return [];
     }
   };
 
-  const getTokenAccounts = async () => {
-    if (!publicKey) return;
+  const fetchAllTokenAccounts = async () => {
     try {
-      for (let mintAcc of mintAccs) {
-        const tokenAccounts = await connection.getTokenAccountsByOwner(
-          publicKey,
-          {
-            mint: new PublicKey(mintAcc.mint),
-            programId: TOKEN_PROGRAM_ID,
+      const allNfts = await Promise.all(mintAccs.map(fetchTokenAccountsByMint));
+      const flattenedNfts = allNfts.flat();
+
+      setUserNFTs((prevNFTs) => {
+        const updatedNFTs = [...prevNFTs];
+        flattenedNfts.forEach((newNFT) => {
+          const existingNFTIndex = updatedNFTs.findIndex(
+            // @ts-ignore
+            (nft) => nft.mint === newNFT.mint
+          );
+          if (existingNFTIndex !== -1) {
+            // @ts-ignore
+            updatedNFTs[existingNFTIndex].amount = newNFT.amount;
+          } else {
+            // @ts-ignore
+            updatedNFTs.push(newNFT);
           }
-        );
-        let nfts: INFT[] = [];
-        tokenAccounts.value.forEach((tokenAccount) => {
-          const accountData = AccountLayout.decode(tokenAccount.account.data);
-          console.log(accountData);
-          const amount = Number(accountData.amount);
-          if (amount === 0) return;
-          const mint = accountData.mint.toBase58();
-          const owner = accountData.owner.toBase58();
-          const ata = tokenAccount.pubkey.toBase58();
-          const src = mintAcc.src;
-          const price = mintAcc.price;
-          nfts.push({ amount, ata, mint, owner, src, price });
         });
-        setUserNFTs((prevNFTs) => {
-          const updatedNFTs = [...prevNFTs];
-          nfts.forEach((newNFT) => {
-            const existingNFTIndex = updatedNFTs.findIndex(
-              (nft) => nft.mint === newNFT.mint
-            );
-            if (existingNFTIndex !== -1) {
-              updatedNFTs[existingNFTIndex].amount = newNFT.amount;
-            } else {
-              updatedNFTs.push(newNFT);
-            }
-          });
-          return updatedNFTs;
-        });
-      }
+        return updatedNFTs;
+      });
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching all token accounts:", error);
     }
+  };
+
+  const fetchTokenAccounts = async () => {
+    if (!publicKey) return;
+    await fetchAllTokenAccounts();
   };
 
   const handleMintNFT = async () => {
     if (!publicKey) return;
-    try {
+
+    const mintNFT = async () => {
       const mintIndex = 3;
       const address = publicKey.toBase58();
-      console.log("addressxx", address);
+
       const url = `/api/mintNFT?address=${address}&mintIndex=${mintIndex}`;
       const response = await fetch(url, {
         method: "GET",
@@ -115,11 +166,12 @@ export const Inventory = () => {
         throw new Error("Failed to mint NFT");
       }
 
-      const data = await response.json();
-      getTokenAccounts(); // Refresh the token accounts to show the new NFT*/
-    } catch (error) {
-      console.error(error);
-    }
+      await response.json();
+      await fetchTokenAccounts(); // Refresh the token accounts to show the new NFT
+    };
+
+    const promise = mintNFT();
+    PromiseToast("Minting NFT", promise);
   };
 
   const getAta = async (mint: string, pda: string) => {
@@ -143,8 +195,6 @@ export const Inventory = () => {
     setUserNFTs((prevUserNFTs) => {
       const updatedUserNFTs = prevUserNFTs
         .map((obj) => {
-     
-           
           if (obj.mint === nft.mint && obj.amount && obj.amount > 0) {
             return { ...obj, amount: obj.amount - 1 };
           }
@@ -159,14 +209,14 @@ export const Inventory = () => {
         (selectedNFT) => selectedNFT.mint === nft.mint
       );
 
-    
       if (selectedNFTIndex !== -1) {
         const updatedSelectedNFTs = prevSelectedNFTs.map((obj, index) => {
-   
           if (
             index === selectedNFTIndex && // @ts-ignore
-            userNFTs[selectedNFTIndex]?.amount !== undefined && userNFTs[selectedNFTIndex].amount > 0
-          ) { // @ts-ignore
+            userNFTs[selectedNFTIndex]?.amount !== undefined && // @ts-ignore
+            userNFTs[selectedNFTIndex].amount > 0
+          ) {
+            // @ts-ignore
             return { ...obj, amount: obj.amount + 1 };
           }
           return obj;
@@ -181,8 +231,10 @@ export const Inventory = () => {
   const handleRemoveFromRoulette = (nft: INFT) => {
     setSelectedNFTs((prevSelectedNFTs) => {
       const updatedSelectedNFTs = prevSelectedNFTs
-        .map((obj) => { // @ts-ignore
-          if (obj.mint === nft.mint && obj.amount > 0) { // @ts-ignore
+        .map((obj) => {
+          // @ts-ignore
+          if (obj.mint === nft.mint && obj.amount > 0) {
+            // @ts-ignore
             return { ...obj, amount: obj.amount - 1 };
           }
           return obj;
@@ -201,7 +253,8 @@ export const Inventory = () => {
           if (
             index === selectedNFTIndex && // @ts-ignore
             userNFTs[selectedNFTIndex].amount > 0
-          ) { // @ts-ignore
+          ) {
+            // @ts-ignore
             return { ...obj, amount: obj.amount + 1 };
           }
           return obj;
@@ -213,21 +266,18 @@ export const Inventory = () => {
     });
   };
 
-  const handleEnterRoullette = async () => {
-    try {
-      
- 
-    if (!publicKey) return;
+  const handleEnterRoulette = async () => {
+    const enterRoulette = async () => {
+      if (!publicKey) return;
 
-    const configState = await program.account.configData.fetch(configPDA);
+      const configState = await program.account.configData.fetch(configPDA);
+      const rouletteCount = configState.rouletteCount.toNumber();
 
-    const rouletteCount = configState.rouletteCount.toNumber();
+      const [roulettePDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("roulette"), Buffer.from(rouletteCount.toString())],
+        program.programId
+      );
 
-    const [roulettePDA] = PublicKey.findProgramAddressSync(
-      [Buffer.from("roulette"), Buffer.from(rouletteCount.toString())],
-      program.programId
-    );
- 
       const [userPDA] = PublicKey.findProgramAddressSync(
         [Buffer.from("roulette"), publicKey.toBuffer()],
         program.programId
@@ -254,19 +304,21 @@ export const Inventory = () => {
         })
         .transaction();
 
-
-
       const transactionSignature = await sendTransaction(
         rouletteTx,
         connection
       );
-      setSelectedNFTs([]);
 
-    } catch (error) {
-    
-      
-    }
-    
+      const transactionConfirmation = await connection.confirmTransaction(
+        transactionSignature,
+        "confirmed"
+      );
+
+      setSelectedNFTs([]);
+    };
+
+    const promise = enterRoulette();
+    PromiseToast("Entering Roulette", promise);
   };
 
   return (
@@ -385,12 +437,10 @@ export const Inventory = () => {
                 onMouseOut={(e) =>
                   e.currentTarget.classList.remove("bg-gray-200")
                 }
-                onClick={(e) => handleEnterRoullette()}
+                onClick={(e) => handleEnterRoulette()}
                 onBlur={(e) => e.currentTarget.classList.remove("bg-gray-400")}
               >
-                <text>
-                  {"Enter Roulette" }
-                </text>
+                <text>{"Enter Roulette"}</text>
               </Button>
             </div>
           </TabsContent>

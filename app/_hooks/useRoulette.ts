@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-interface IPlayer {
+export interface IPlayer {
   address: string;
   mint: string;
   floorPrice: number;

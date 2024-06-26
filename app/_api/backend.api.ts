@@ -1,3 +1,10 @@
+export const GetGameState = async () => {
+  const response = await fetch("http://api.soluck.io/solana/roulette");
+  const data = await response.json();
+  console.log(data);
+  return data;
+};
+
 export const GetRouletteState = async () => {
   const response = await fetch("http://api.soluck.io/solana/roulette");
   const data = await response.json();
